@@ -175,6 +175,53 @@
       text-transform: uppercase;
     }
 
+    /* Quick links */
+    .hero-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1.25rem;
+    }
+    .hero-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-family: var(--f-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 0.42rem 0.9rem;
+      border-radius: var(--r-sm);
+      border: 1px solid;
+      transition: all var(--trans);
+      white-space: nowrap;
+    }
+    .hero-link-primary {
+      background: var(--brand-teal);
+      border-color: var(--brand-teal);
+      color: var(--brand-dark);
+      font-weight: 600;
+      box-shadow: 0 2px 14px var(--glow);
+    }
+    .hero-link-primary:hover {
+      background: var(--brand-teal-2);
+      border-color: var(--brand-teal-2);
+      box-shadow: 0 4px 20px var(--glow-lg);
+      transform: translateY(-1px);
+    }
+    .hero-link-ghost {
+      background: transparent;
+      border-color: var(--border-hi);
+      color: var(--mid);
+    }
+    .hero-link-ghost:hover {
+      border-color: var(--brand-teal);
+      color: var(--brand-teal);
+      transform: translateY(-1px);
+    }
+    .hero-link-icon { font-size: 0.75rem; }
+
     /* Stats panel */
     .hero-stats {
       display: flex;
@@ -695,6 +742,18 @@
         <span>KR250</span>
       </h1>
       <p class="hero-sub">Catálogo de Peças Intercambiáveis</p>
+
+      <div class="hero-links">
+        <a class="hero-link hero-link-primary" href="https://kingger.com.br/pecas?modelo=KR250" target="_blank" rel="noopener">
+          <span class="hero-link-icon">🛒</span> Peças Originais
+        </a>
+        <a class="hero-link hero-link-ghost" href="https://kingger.com.br/wp-content/uploads/2023/04/MANUAL-IMPRESSO-KR250-2024.pdf" target="_blank" rel="noopener">
+          <span class="hero-link-icon">📖</span> Manual
+        </a>
+        <a class="hero-link hero-link-ghost" href="https://kingger.com.br/wp-content/uploads/2023/04/FICHA-TECNICA-KR250-2024.pdf" target="_blank" rel="noopener">
+          <span class="hero-link-icon">📋</span> Ficha Técnica
+        </a>
+      </div>
     </div>
 
     <div class="hero-stats">
