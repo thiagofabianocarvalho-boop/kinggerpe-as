@@ -1,865 +1,908 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-bs-theme="dark">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>KR250 | Catálogo de Peças Intercambiáveis</title>
+  <title>KR250 · Peças Intercambiáveis</title>
 
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
-
-  <!-- Bootstrap 5 -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" />
-
-  <!-- DataTables + Bootstrap 5 skin -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
-  <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;700&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <style>
-    /* ─── TOKENS ────────────────────────────────────────────── */
+    /* ══════════════════════════════════════════
+       TOKENS
+    ══════════════════════════════════════════ */
     :root {
-      --bg-base:    #0d0e0f;
-      --bg-card:    #141618;
-      --bg-surface: #1b1d20;
-      --bg-hover:   #222529;
-      --border:     #2a2d32;
-      --accent:     #e8620a;
-      --accent-dim: #a04207;
-      --accent-glow:#e8620a44;
-      --text-hi:    #f0ece6;
-      --text-mid:   #9a9590;
-      --text-lo:    #55524e;
-      --font-display: 'Bebas Neue', sans-serif;
-      --font-mono:    'IBM Plex Mono', monospace;
-      --font-body:    'Barlow', sans-serif;
+      --bg:        #090a0c;
+      --bg-1:      #0f1115;
+      --bg-2:      #151820;
+      --bg-3:      #1b1f28;
+      --border:    rgba(255,255,255,0.07);
+      --border-hi: rgba(255,255,255,0.13);
+      --accent:    #ff6b1a;
+      --accent-2:  #ffaa55;
+      --glow:      rgba(255,107,26,0.18);
+      --glow-sm:   rgba(255,107,26,0.10);
+      --hi:        #f2ede7;
+      --mid:       #7a7670;
+      --lo:        #35322e;
+      --f-display: 'Antonio', sans-serif;
+      --f-mono:    'DM Mono', monospace;
+      --f-body:    'Plus Jakarta Sans', sans-serif;
+      --r:         14px;
+      --r-sm:      8px;
+      --trans:     0.2s cubic-bezier(0.4,0,0.2,1);
     }
 
-    /* ─── BASE ──────────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
 
     body {
-      background-color: var(--bg-base);
-      color: var(--text-hi);
-      font-family: var(--font-body);
-      font-size: 0.92rem;
+      background: var(--bg);
+      color: var(--hi);
+      font-family: var(--f-body);
+      font-size: 14px;
+      line-height: 1.5;
       min-height: 100dvh;
+      overflow-x: hidden;
     }
 
-    /* Subtle noise overlay */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--lo); border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--mid); }
+
+    /* ══════════════════════════════════════════
+       HERO
+    ══════════════════════════════════════════ */
+    .hero {
+      position: relative;
+      padding: 3rem 1.5rem 4.5rem;
+      overflow: hidden;
+      background: var(--bg-1);
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-glow {
+      position: absolute;
+      top: -60px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 350px;
+      background: radial-gradient(ellipse, rgba(255,107,26,0.13) 0%, transparent 70%);
       pointer-events: none;
-      z-index: 0;
-      opacity: 0.5;
+    }
+    .hero-lines {
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(
+        -52deg, transparent, transparent 38px,
+        rgba(255,255,255,0.014) 38px, rgba(255,255,255,0.014) 39px
+      );
+      pointer-events: none;
     }
 
-    /* ─── HEADER ─────────────────────────────────────────────── */
-    header {
-      background: var(--bg-card);
-      border-bottom: 1px solid var(--border);
-      padding: 1rem 1.25rem 0.85rem;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .header-inner {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .logo-block { display: flex; align-items: center; gap: 0.6rem; }
-
-    .logo-icon {
-      width: 40px; height: 40px;
-      background: var(--accent);
-      border-radius: 6px;
-      display: grid; place-items: center;
-      font-size: 1.3rem;
-      flex-shrink: 0;
-      box-shadow: 0 0 18px var(--accent-glow);
-    }
-
-    .logo-text {
-      font-family: var(--font-display);
-      letter-spacing: 0.04em;
-      line-height: 1;
-    }
-    .logo-text .model {
-      font-size: 1.8rem;
-      color: var(--text-hi);
-    }
-    .logo-text .sub {
-      font-size: 0.65rem;
-      color: var(--text-mid);
-      font-family: var(--font-mono);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    .header-meta {
-      margin-left: auto;
-      text-align: right;
-    }
-    .header-meta .badge-update {
-      font-family: var(--font-mono);
-      font-size: 0.62rem;
-      color: var(--text-lo);
-      letter-spacing: 0.08em;
-    }
-    #total-count {
-      font-family: var(--font-display);
-      font-size: 2rem;
-      color: var(--accent);
-      line-height: 1;
-    }
-    .count-label {
-      font-family: var(--font-mono);
-      font-size: 0.58rem;
-      color: var(--text-mid);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    /* ─── SEGMENT FILTER PILLS ──────────────────────────────── */
-    .filter-bar {
-      background: var(--bg-card);
-      border-bottom: 1px solid var(--border);
-      padding: 0.6rem 1.25rem;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-    .filter-bar::-webkit-scrollbar { display: none; }
-
-    .filter-inner {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      gap: 0.5rem;
-      white-space: nowrap;
-    }
-
-    .seg-pill {
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text-mid);
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      letter-spacing: 0.06em;
-      padding: 0.32rem 0.75rem;
-      border-radius: 100px;
-      cursor: pointer;
-      transition: all 0.18s ease;
-      white-space: nowrap;
-      user-select: none;
-    }
-    .seg-pill:hover { border-color: var(--accent-dim); color: var(--text-hi); }
-    .seg-pill.active {
-      border-color: var(--accent);
-      background: var(--accent-glow);
-      color: var(--accent);
-      box-shadow: 0 0 10px var(--accent-glow);
-    }
-
-    /* ─── MAIN ──────────────────────────────────────────────── */
-    main {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 1rem 1rem 4rem;
+    .hero-inner {
       position: relative;
       z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      text-align: center;
     }
 
-    /* ─── SEARCH ROW ─────────────────────────────────────────── */
-    .search-row {
-      display: flex;
-      gap: 0.6rem;
-      margin-bottom: 1rem;
+    .hero-badge {
+      display: inline-flex;
       align-items: center;
-      flex-wrap: wrap;
+      gap: 0.45rem;
+      font-family: var(--f-mono);
+      font-size: 0.64rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(255,107,26,0.09);
+      border: 1px solid rgba(255,107,26,0.22);
+      padding: 0.28rem 0.85rem;
+      border-radius: 100px;
+      margin-bottom: 1.2rem;
+    }
+    .hero-badge::before {
+      content: '';
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent);
     }
 
-    #search-input {
-      flex: 1 1 200px;
-      background: var(--bg-surface);
+    .hero-title {
+      font-family: var(--f-display);
+      font-weight: 700;
+      font-size: clamp(3.8rem, 13vw, 7.5rem);
+      line-height: 0.9;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+      color: var(--hi);
+    }
+    .hero-title .accent-word {
+      display: block;
+      background: linear-gradient(120deg, var(--accent) 20%, var(--accent-2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-desc {
+      font-size: 0.85rem;
+      color: var(--mid);
+      letter-spacing: 0.05em;
+      margin-bottom: 2.2rem;
+    }
+
+    .stats-row {
+      display: inline-flex;
+      gap: 0;
       border: 1px solid var(--border);
-      color: var(--text-hi);
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
-      padding: 0.5rem 0.85rem;
-      border-radius: 8px;
+      border-radius: var(--r);
+      overflow: hidden;
+      background: var(--bg-2);
+    }
+    .stat-cell {
+      padding: 0.75rem 1.5rem;
+      border-right: 1px solid var(--border);
+      text-align: center;
+    }
+    .stat-cell:last-child { border-right: none; }
+    .stat-n {
+      font-family: var(--f-display);
+      font-size: 1.9rem;
+      line-height: 1;
+      display: block;
+      color: var(--hi);
+    }
+    .stat-n.hot { color: var(--accent); }
+    .stat-k {
+      font-family: var(--f-mono);
+      font-size: 0.56rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--lo);
+      display: block;
+      margin-top: 0.1rem;
+    }
+
+    /* ══════════════════════════════════════════
+       STICKY CONTROLS
+    ══════════════════════════════════════════ */
+    .ctrl-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(9,10,12,0.88);
+      backdrop-filter: blur(24px) saturate(1.5);
+      -webkit-backdrop-filter: blur(24px) saturate(1.5);
+      border-bottom: 1px solid var(--border);
+    }
+    .ctrl-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0.8rem 1.25rem 0.6rem;
+    }
+
+    .search-box {
+      position: relative;
+      margin-bottom: 0.6rem;
+    }
+    .search-ico {
+      position: absolute;
+      left: 0.9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--lo);
+      font-size: 1rem;
+      pointer-events: none;
+      line-height: 1;
+    }
+    #search-input {
+      width: 100%;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      color: var(--hi);
+      font-family: var(--f-body);
+      font-size: 0.88rem;
+      padding: 0.65rem 2.5rem 0.65rem 2.4rem;
       outline: none;
-      transition: border-color 0.18s;
-      min-width: 0;
+      transition: border-color var(--trans), box-shadow var(--trans);
     }
     #search-input:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
+      box-shadow: 0 0 0 3px var(--glow-sm);
     }
-    #search-input::placeholder { color: var(--text-lo); }
+    #search-input::placeholder { color: var(--lo); }
 
-    #btn-refresh {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      color: var(--text-mid);
-      font-size: 1rem;
-      width: 38px; height: 38px;
-      border-radius: 8px;
+    #clear-btn {
+      position: absolute;
+      right: 0.7rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--mid);
       cursor: pointer;
-      display: grid; place-items: center;
-      transition: all 0.18s;
-      flex-shrink: 0;
+      font-size: 0.9rem;
+      display: none;
+      padding: 0.25rem;
+      line-height: 1;
+      border-radius: 4px;
+      transition: color var(--trans);
     }
-    #btn-refresh:hover { border-color: var(--accent); color: var(--accent); }
-    #btn-refresh.spinning { animation: spin 0.6s linear infinite; }
+    #clear-btn:hover { color: var(--hi); }
+    #clear-btn.on { display: block; }
+
+    .pills {
+      display: flex;
+      gap: 0.38rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+    .pills::-webkit-scrollbar { display: none; }
+
+    .pill {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.28rem 0.75rem;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--mid);
+      font-family: var(--f-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: all var(--trans);
+      white-space: nowrap;
+      user-select: none;
+    }
+    .pill:hover { border-color: var(--border-hi); color: var(--hi); }
+    .pill.on {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 2px 14px var(--glow);
+    }
+    .pill-n {
+      opacity: 0.65;
+      font-size: 0.56rem;
+    }
+
+    /* ══════════════════════════════════════════
+       MAIN
+    ══════════════════════════════════════════ */
+    .content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.4rem 1.25rem 5rem;
+    }
+
+    .bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      gap: 0.5rem;
+    }
+    #bar-label {
+      font-family: var(--f-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--mid);
+    }
+    #bar-label b { color: var(--accent); font-weight: 500; }
+
+    #refresh-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      color: var(--mid);
+      font-family: var(--f-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.06em;
+      padding: 0.32rem 0.75rem;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: all var(--trans);
+    }
+    #refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+    #refresh-btn .ico { display: inline-block; transition: transform 0.6s ease; }
+    #refresh-btn.spin .ico { animation: spin 0.65s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ─── TABLE WRAPPER ──────────────────────────────────────── */
-    .table-card {
-      background: var(--bg-card);
+    /* ══════════════════════════════════════════
+       GRID
+    ══════════════════════════════════════════ */
+    #grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.8rem;
+    }
+    @media (min-width: 560px)  { #grid { grid-template-columns: repeat(2,1fr); } }
+    @media (min-width: 900px)  { #grid { grid-template-columns: repeat(3,1fr); } }
+    @media (min-width: 1140px) { #grid { grid-template-columns: repeat(4,1fr); } }
+
+    /* ══════════════════════════════════════════
+       CARD
+    ══════════════════════════════════════════ */
+    .card {
+      background: var(--bg-1);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: var(--r);
+      padding: 1.05rem;
+      display: flex;
+      flex-direction: column;
+      position: relative;
       overflow: hidden;
+      transition: border-color var(--trans), box-shadow var(--trans), transform var(--trans);
+      animation: up 0.3s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .card:hover {
+      border-color: rgba(255,107,26,0.3);
+      box-shadow: 0 0 0 1px rgba(255,107,26,0.1), 0 12px 36px rgba(0,0,0,0.45);
+      transform: translateY(-2px);
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--c, var(--accent)), transparent);
+      opacity: 0;
+      transition: opacity var(--trans);
+    }
+    .card:hover::before { opacity: 1; }
+
+    @keyframes up {
+      from { opacity:0; transform:translateY(14px) scale(.98); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
     }
 
-    /* DataTables overrides */
-    table.dataTable thead th {
-      background: var(--bg-surface) !important;
-      color: var(--text-mid) !important;
-      font-family: var(--font-mono) !important;
-      font-size: 0.65rem !important;
-      letter-spacing: 0.1em !important;
-      text-transform: uppercase !important;
-      border-bottom: 1px solid var(--border) !important;
-      border-top: none !important;
-      padding: 0.8rem 0.75rem !important;
-      white-space: nowrap;
-    }
-    table.dataTable thead th:hover { color: var(--text-hi) !important; }
-    table.dataTable thead .sorting::after,
-    table.dataTable thead .sorting_asc::after,
-    table.dataTable thead .sorting_desc::after { color: var(--accent) !important; }
-
-    table.dataTable tbody tr {
-      border-bottom: 1px solid var(--border) !important;
-      background: var(--bg-card) !important;
-      transition: background 0.12s;
-    }
-    table.dataTable tbody tr:last-child { border-bottom: none !important; }
-    table.dataTable tbody tr:hover { background: var(--bg-hover) !important; }
-
-    table.dataTable tbody td {
-      color: var(--text-hi) !important;
-      border: none !important;
-      padding: 0.7rem 0.75rem !important;
-      vertical-align: middle;
-      font-size: 0.85rem;
-    }
-
-    /* DataTables controls */
-    .dataTables_wrapper .dataTables_length,
-    .dataTables_wrapper .dataTables_filter,
-    .dataTables_wrapper .dataTables_info,
-    .dataTables_wrapper .dataTables_paginate { display: none !important; }
-
-    /* ─── CELL COMPONENTS ────────────────────────────────────── */
-    .badge-seg {
-      display: inline-block;
-      padding: 0.18rem 0.55rem;
+    /* Seg badge */
+    .c-seg {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-family: var(--f-mono);
+      font-size: 0.56rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.55rem;
       border-radius: 100px;
-      font-family: var(--font-mono);
+      border: 1px solid;
+      width: fit-content;
+      margin-bottom: 0.7rem;
+    }
+
+    .c-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--hi);
+      margin-bottom: 0.2rem;
+    }
+    .c-year {
+      font-family: var(--f-mono);
+      font-size: 0.6rem;
+      color: var(--mid);
+      margin-bottom: 0.7rem;
+    }
+
+    /* Codes row */
+    .c-codes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      margin-bottom: 0.7rem;
+      min-height: 22px;
+    }
+    .chip {
+      font-family: var(--f-mono);
       font-size: 0.62rem;
-      letter-spacing: 0.06em;
+      padding: 0.18rem 0.48rem;
+      border-radius: 5px;
       border: 1px solid;
       white-space: nowrap;
     }
+    .chip-o { color: var(--mid); border-color: rgba(122,118,112,0.2); background: rgba(122,118,112,0.07); }
+    .chip-c { color: var(--accent-2); border-color: rgba(255,170,85,0.25); background: rgba(255,170,85,0.07); }
 
-    .code-chip {
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      background: var(--bg-surface);
-      padding: 0.18rem 0.5rem;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      color: var(--accent);
-      white-space: nowrap;
-      display: inline-block;
+    /* Divider */
+    .c-hr {
+      border: none;
+      border-top: 1px dashed var(--border);
+      margin: 0 0 0.75rem;
     }
 
-    .moto-compat {
+    /* Compat moto */
+    .c-moto {
       font-weight: 600;
-      color: var(--text-hi);
+      font-size: 0.88rem;
+      color: var(--hi);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.45rem;
+    }
+    .c-moto::before {
+      content: '↔';
+      font-size: 0.68rem;
+      color: var(--accent);
+      flex-shrink: 0;
     }
 
-    .nota-text {
-      color: var(--text-mid);
-      font-size: 0.78rem;
-      line-height: 1.4;
+    /* Note */
+    .c-note {
+      font-size: 0.76rem;
+      color: var(--mid);
+      line-height: 1.5;
+      flex: 1;
+      margin-bottom: 0.7rem;
     }
 
-    .indicado-tag {
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      color: var(--text-lo);
+    /* Footer */
+    .c-foot {
+      margin-top: auto;
+      padding-top: 0.6rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .c-avatar {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      display: grid; place-items: center;
+      font-family: var(--f-mono);
+      font-size: 0.52rem;
+      color: var(--mid);
+      flex-shrink: 0;
+    }
+    .c-author {
+      font-family: var(--f-mono);
+      font-size: 0.58rem;
+      color: var(--lo);
     }
 
-    /* Segment color map */
-    .seg-motor    { color: #f87c52; border-color: #f87c5244; background: #f87c5214; }
-    .seg-eletrica { color: #fbbf24; border-color: #fbbf2444; background: #fbbf2414; }
-    .seg-freios   { color: #60a5fa; border-color: #60a5fa44; background: #60a5fa14; }
-    .seg-suspensao{ color: #a78bfa; border-color: #a78bfa44; background: #a78bfa14; }
-    .seg-transmissao{ color: #34d399; border-color: #34d39944; background: #34d39914; }
-    .seg-carroceria { color: #f472b6; border-color: #f472b644; background: #f472b614; }
-    .seg-outros   { color: #94a3b8; border-color: #94a3b844; background: #94a3b814; }
+    /* ══════════════════════════════════════════
+       SEGMENT COLORS
+    ══════════════════════════════════════════ */
+    .s-motor      { --c:#ff6b1a; color:#ff6b1a; border-color:rgba(255,107,26,.22); background:rgba(255,107,26,.07); }
+    .s-eletrica   { --c:#f5c542; color:#f5c542; border-color:rgba(245,197,66,.22); background:rgba(245,197,66,.07); }
+    .s-freios     { --c:#5a9cf5; color:#5a9cf5; border-color:rgba(90,156,245,.22); background:rgba(90,156,245,.07); }
+    .s-suspensao  { --c:#a78bfa; color:#a78bfa; border-color:rgba(167,139,250,.22); background:rgba(167,139,250,.07); }
+    .s-transmissao{ --c:#34d399; color:#34d399; border-color:rgba(52,211,153,.22); background:rgba(52,211,153,.07); }
+    .s-carroceria { --c:#f472b6; color:#f472b6; border-color:rgba(244,114,182,.22); background:rgba(244,114,182,.07); }
+    .s-outros     { --c:#94a3b8; color:#94a3b8; border-color:rgba(148,163,184,.22); background:rgba(148,163,184,.07); }
 
-    /* ─── STATES ─────────────────────────────────────────────── */
-    #state-loading, #state-error, #state-empty {
+    /* ══════════════════════════════════════════
+       STATES
+    ══════════════════════════════════════════ */
+    .state {
       display: none;
       text-align: center;
-      padding: 3rem 1rem;
+      padding: 4rem 1rem;
     }
-    .spinner-ring {
-      width: 48px; height: 48px;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent);
+    .state.on { display: block; }
+
+    .state-ico-wrap {
+      width: 56px; height: 56px;
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      display: grid; place-items: center;
+      font-size: 1.4rem;
       margin: 0 auto 1rem;
     }
-    .state-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
-    .state-msg { color: var(--text-mid); font-family: var(--font-mono); font-size: 0.78rem; }
-
-    /* ─── PAGINATION ─────────────────────────────────────────── */
-    #pagination-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.75rem 1rem;
-      border-top: 1px solid var(--border);
-      flex-wrap: wrap;
-      gap: 0.5rem;
+    .spinner {
+      width: 26px; height: 26px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
     }
-    #page-info {
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      color: var(--text-lo);
+    .state-title {
+      font-family: var(--f-display);
+      font-size: 1.3rem;
+      color: var(--hi);
+      margin-bottom: 0.3rem;
     }
-    .page-btns { display: flex; gap: 0.3rem; }
-    .page-btn {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      color: var(--text-mid);
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      padding: 0.28rem 0.6rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .page-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .page-btn.active { border-color: var(--accent); background: var(--accent-glow); color: var(--accent); }
-    .page-btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
-
-    /* ─── MOBILE CARD VIEW ───────────────────────────────────── */
-    @media (max-width: 767px) {
-      header { padding: 0.75rem 1rem 0.65rem; }
-      .logo-text .model { font-size: 1.5rem; }
-      #total-count { font-size: 1.6rem; }
-
-      /* Hide table, show cards */
-      .table-card { display: none; }
-      #cards-container { display: block; }
-    }
-
-    @media (min-width: 768px) {
-      #cards-container { display: none; }
-    }
-
-    /* Mobile cards */
-    #cards-container { }
-    .part-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1rem;
-      margin-bottom: 0.75rem;
-      animation: fadeUp 0.25s ease both;
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .part-card-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: 0.6rem;
-    }
-    .part-name { font-weight: 600; font-size: 0.95rem; line-height: 1.3; }
-    .part-card-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.5rem 0.75rem;
-    }
-    .card-field label {
-      display: block;
-      font-family: var(--font-mono);
-      font-size: 0.58rem;
-      color: var(--text-lo);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 0.15rem;
-    }
-    .card-field .val {
-      font-size: 0.82rem;
-      color: var(--text-hi);
-      word-break: break-word;
-    }
-    .card-field.full { grid-column: 1 / -1; }
-    .part-card-footer {
-      margin-top: 0.65rem;
-      padding-top: 0.55rem;
-      border-top: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    /* ─── FOOTER ──────────────────────────────────────────────── */
-    footer {
-      text-align: center;
-      padding: 1.5rem;
-      font-family: var(--font-mono);
-      font-size: 0.62rem;
-      color: var(--text-lo);
+    .state-sub {
+      font-family: var(--f-mono);
+      font-size: 0.66rem;
+      color: var(--mid);
       letter-spacing: 0.06em;
-      border-top: 1px solid var(--border);
+      line-height: 1.7;
     }
-    footer span { color: var(--accent); }
+    .state-sub code {
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.1rem 0.4rem;
+      color: var(--accent-2);
+    }
 
-    /* ─── TOAST ───────────────────────────────────────────────── */
+    /* ══════════════════════════════════════════
+       PAGINATION
+    ══════════════════════════════════════════ */
+    #pag {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      padding: 2rem 0 0;
+      flex-wrap: wrap;
+    }
+    .pb {
+      min-width: 32px; height: 32px;
+      display: grid; place-items: center;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      color: var(--mid);
+      font-family: var(--f-mono);
+      font-size: 0.7rem;
+      cursor: pointer;
+      transition: all var(--trans);
+      padding: 0 0.4rem;
+    }
+    .pb:hover { border-color: var(--border-hi); color: var(--hi); }
+    .pb.on { background: var(--accent); border-color: var(--accent); color:#fff; box-shadow: 0 2px 10px var(--glow); }
+    .pb:disabled { opacity:.22; pointer-events:none; }
+    .pd { color: var(--lo); font-size: 0.7rem; font-family: var(--f-mono); padding: 0 0.2rem; }
+
+    /* ══════════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════════ */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem;
+      text-align: center;
+      font-family: var(--f-mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--lo);
+    }
+    footer b { color: var(--accent); font-weight: 400; }
+
+    /* ══════════════════════════════════════════
+       TOAST
+    ══════════════════════════════════════════ */
     #toast {
       position: fixed;
-      bottom: 1.25rem;
-      left: 50%;
-      transform: translateX(-50%) translateY(60px);
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      color: var(--text-mid);
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      padding: 0.5rem 1.1rem;
+      bottom: 1.5rem; left: 50%;
+      transform: translateX(-50%) translateY(70px);
+      background: var(--bg-3);
+      border: 1px solid var(--border-hi);
+      color: var(--hi);
+      font-family: var(--f-mono);
+      font-size: 0.68rem;
+      padding: 0.5rem 1.2rem;
       border-radius: 100px;
       z-index: 999;
-      transition: transform 0.25s ease;
       white-space: nowrap;
+      opacity: 0;
+      transition: transform 0.28s cubic-bezier(0.16,1,.3,1), opacity 0.28s;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     }
-    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.on { transform: translateX(-50%) translateY(0); opacity: 1; }
   </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════════ -->
-<!--  HEADER                                                    -->
-<!-- ═══════════════════════════════════════════════════════════ -->
-<header>
-  <div class="header-inner">
-    <div class="logo-block">
-      <div class="logo-icon">🏍️</div>
-      <div class="logo-text">
-        <div class="model">KINGGER KR250</div>
-        <div class="sub">Catálogo de Peças Intercambiáveis</div>
+<!-- HERO ──────────────────────────────────── -->
+<header class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-lines"></div>
+  <div class="hero-inner">
+    <div class="hero-badge">Comunidade Trilheiros · Brasil</div>
+    <h1 class="hero-title">
+      KINGGER
+      <span class="accent-word">KR250</span>
+    </h1>
+    <p class="hero-desc">Catálogo colaborativo de peças intercambiáveis</p>
+    <div class="stats-row">
+      <div class="stat-cell">
+        <span class="stat-n hot" id="s-total">—</span>
+        <span class="stat-k">Peças mapeadas</span>
       </div>
-    </div>
-    <div class="header-meta">
-      <div id="total-count">—</div>
-      <div class="count-label">peças mapeadas</div>
-      <div class="badge-update" id="last-update">Carregando…</div>
+      <div class="stat-cell">
+        <span class="stat-n" id="s-motos">—</span>
+        <span class="stat-k">Motos compatíveis</span>
+      </div>
+      <div class="stat-cell">
+        <span class="stat-n" id="s-segs">—</span>
+        <span class="stat-k">Segmentos</span>
+      </div>
     </div>
   </div>
 </header>
 
-<!-- ═══════════════════════════════════════════════════════════ -->
-<!--  SEGMENT FILTER BAR                                        -->
-<!-- ═══════════════════════════════════════════════════════════ -->
-<div class="filter-bar">
-  <div class="filter-inner" id="seg-pills">
-    <button class="seg-pill active" data-seg="todos">Todos</button>
-    <!-- pills rendered by JS -->
+<!-- CONTROLS ──────────────────────────────── -->
+<div class="ctrl-wrap">
+  <div class="ctrl-inner">
+    <div class="search-box">
+      <span class="search-ico">⌕</span>
+      <input id="search-input" type="search" placeholder="Buscar peça, moto, código…" autocomplete="off" />
+      <button id="clear-btn" title="Limpar">✕</button>
+    </div>
+    <div class="pills" id="pills"></div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════ -->
-<!--  MAIN                                                      -->
-<!-- ═══════════════════════════════════════════════════════════ -->
-<main>
+<!-- MAIN ──────────────────────────────────── -->
+<main class="content">
 
-  <!-- Search + Refresh -->
-  <div class="search-row">
-    <input id="search-input" type="search" placeholder="🔍  Buscar peça, moto, código…" autocomplete="off" />
-    <button id="btn-refresh" title="Atualizar dados">↻</button>
+  <!-- States -->
+  <div class="state on" id="st-loading">
+    <div class="state-ico-wrap"><div class="spinner"></div></div>
+    <div class="state-title">Carregando planilha</div>
+    <div class="state-sub">Buscando dados no Google Sheets…</div>
   </div>
 
-  <!-- Loading -->
-  <div id="state-loading">
-    <div class="spinner-ring"></div>
-    <div class="state-msg">Carregando planilha…</div>
+  <div class="state" id="st-config">
+    <div class="state-ico-wrap">⚙️</div>
+    <div class="state-title">Configure o CSV</div>
+    <div class="state-sub">Substitua <code>SEU_LINK_CSV_AQUI</code> pelo link público da sua planilha Google.</div>
   </div>
 
-  <!-- Error -->
-  <div id="state-error">
-    <div class="state-icon">⚠️</div>
-    <div class="state-msg" id="error-msg">Não foi possível carregar os dados.</div>
+  <div class="state" id="st-error">
+    <div class="state-ico-wrap">⚠️</div>
+    <div class="state-title">Erro ao carregar</div>
+    <div class="state-sub" id="err-msg">Verifique o link CSV e se a planilha está publicada.</div>
   </div>
 
-  <!-- Empty result -->
-  <div id="state-empty">
-    <div class="state-icon">🔩</div>
-    <div class="state-msg">Nenhuma peça encontrada para este filtro.</div>
+  <div class="state" id="st-empty">
+    <div class="state-ico-wrap">🔩</div>
+    <div class="state-title">Nenhuma peça encontrada</div>
+    <div class="state-sub">Tente outro termo ou selecione outro segmento.</div>
   </div>
 
-  <!-- Desktop: DataTable -->
-  <div class="table-card" id="table-wrapper">
-    <div style="overflow-x:auto;">
-      <table id="parts-table" class="table table-borderless dataTable w-100" style="min-width:900px;">
-        <thead>
-          <tr>
-            <th>Segmento</th>
-            <th>Peça (KR250)</th>
-            <th>Ano KR</th>
-            <th>Cód. Original</th>
-            <th>Moto Compatível</th>
-            <th>Peça / Código Compat.</th>
-            <th>Notas de Instalação</th>
-            <th>Indicado por</th>
-          </tr>
-        </thead>
-        <tbody id="table-body"></tbody>
-      </table>
-    </div>
-    <div id="pagination-row">
-      <div id="page-info">—</div>
-      <div class="page-btns" id="page-btns"></div>
-    </div>
+  <!-- Results bar -->
+  <div class="bar" id="bar" style="display:none">
+    <span id="bar-label"></span>
+    <button id="refresh-btn"><span class="ico">↻</span> Atualizar</button>
   </div>
 
-  <!-- Mobile: Card list -->
-  <div id="cards-container"></div>
+  <!-- Grid -->
+  <div id="grid"></div>
+
+  <!-- Pagination -->
+  <div id="pag"></div>
 
 </main>
 
 <footer>
-  Comunidade <span>KR250 Trilheiros</span> · Dados via Google Sheets · Open Source
+  <b>KR250 Trilheiros</b> · Dados via Google Sheets · Custo zero · Open Source
 </footer>
-
 <div id="toast"></div>
 
-<!-- ═══════════════════════════════════════════════════════════ -->
-<!--  SCRIPTS                                                   -->
-<!-- ═══════════════════════════════════════════════════════════ -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<!-- SCRIPTS ───────────────────────────────── -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
-
 <script>
-/* ═══════════════════════════════════════════════════════════════
-   ⚙️  CONFIGURAÇÃO — substitua a URL abaixo pela sua
-   ═══════════════════════════════════════════════════════════════
-   Como obter o link CSV do Google Sheets:
-   1. Abra a planilha → Arquivo → Publicar na web
-   2. Selecione a aba correta → Formato: CSV → Publicar
-   3. Copie o link gerado e cole em csvUrl abaixo
-   ──────────────────────────────────────────────────────────── */
+/* ── CONFIG ──────────────────────────────────── */
 const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQW4AYA3C2_EER5IH4soEY39GFZRA9UNYJ2MygvZCh0rM3fsGgxeBAIwpFCpqr6gFZWkYMozo1qi51A/pub?output=csv';
+const PER_PAGE = 24;
 
-/* ───────────────────────────────────────────────────────────── */
-
-const ROWS_PER_PAGE = 20;
-
-/* Mapeamento de segmento → classe CSS de cor */
-const SEG_CLASS = {
-  'motor':      'seg-motor',
-  'elétrica':   'seg-eletrica',
-  'eletrica':   'seg-eletrica',
-  'freios':     'seg-freios',
-  'suspensão':  'seg-suspensao',
-  'suspensao':  'seg-suspensao',
-  'transmissão':'seg-transmissao',
-  'transmissao':'seg-transmissao',
-  'carroceria': 'seg-carroceria',
+/* ── SEGMENT MAP ─────────────────────────────── */
+const SMAP = {
+  'motor':         { cls:'s-motor',       ico:'⚙️' },
+  'elétrica':      { cls:'s-eletrica',    ico:'⚡' },
+  'eletrica':      { cls:'s-eletrica',    ico:'⚡' },
+  'freios':        { cls:'s-freios',      ico:'🛑' },
+  'suspensão':     { cls:'s-suspensao',   ico:'🔧' },
+  'suspensao':     { cls:'s-suspensao',   ico:'🔧' },
+  'transmissão':   { cls:'s-transmissao', ico:'⛓️' },
+  'transmissao':   { cls:'s-transmissao', ico:'⛓️' },
+  'carroceria':    { cls:'s-carroceria',  ico:'🏍️' },
 };
-function segClass(val = '') {
-  return SEG_CLASS[val.toLowerCase().trim()] || 'seg-outros';
+const si = v => SMAP[(v||'').toLowerCase().trim()] || { cls:'s-outros', ico:'📦' };
+
+/* ── STATE ───────────────────────────────────── */
+let all = [], filt = [], seg = 'todos', q = '', pg = 1;
+
+/* ── UTILS ───────────────────────────────────── */
+const $  = id => document.getElementById(id);
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+function toast(msg, ms=2400) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('on');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('on'), ms);
 }
 
-/* Estado da aplicação */
-let allData    = [];    // todos os registros
-let filtered   = [];    // após filtros
-let currentSeg = 'todos';
-let currentQ   = '';
-let currentPage = 1;
-let dtTable    = null;
-
-/* ─── UTIL ──────────────────────────────────────────────────── */
-function showToast(msg, ms = 2200) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), ms);
+function setState(v) {
+  ['st-loading','st-config','st-error','st-empty'].forEach(id => $( id).classList.remove('on'));
+  $('bar').style.display = 'none';
+  $('grid').innerHTML   = '';
+  $('pag').innerHTML    = '';
+  if (v) $(v).classList.add('on');
+  if (v === null) $('bar').style.display = 'flex';
 }
 
-function setState(state) {
-  ['loading','error','empty'].forEach(s => {
-    document.getElementById('state-' + s).style.display = 'none';
-  });
-  document.getElementById('table-wrapper').style.display = 'none';
-  document.getElementById('cards-container').style.display = 'none';
-
-  if (state === 'loading') {
-    document.getElementById('state-loading').style.display = 'block';
-  } else if (state === 'error') {
-    document.getElementById('state-error').style.display = 'block';
-  } else if (state === 'empty') {
-    document.getElementById('state-empty').style.display = 'block';
-  } else if (state === 'data') {
-    document.getElementById('table-wrapper').style.display = 'block';
-    document.getElementById('cards-container').style.display = 'block';
-  }
-}
-
-/* ─── CSV LOAD ──────────────────────────────────────────────── */
-function loadData(showSpinner = true) {
-  if (!csvUrl || csvUrl === 'SEU_LINK_CSV_AQUI') {
-    setState('error');
-    document.getElementById('error-msg').innerHTML =
-      '⚙️ Configure a variável <code>csvUrl</code> no código com o link CSV da sua planilha.';
-    document.getElementById('state-error').style.display = 'block';
-    document.getElementById('table-wrapper').style.display = 'none';
-    return;
-  }
-
-  if (showSpinner) setState('loading');
-
-  /* Cache-busting: adiciona timestamp para forçar dados frescos */
-  const url = csvUrl + (csvUrl.includes('?') ? '&' : '?') + '_cb=' + Date.now();
-
+/* ── LOAD ────────────────────────────────────── */
+function load(silent=false) {
+  if (!csvUrl || csvUrl === 'SEU_LINK_CSV_AQUI') { setState('st-config'); return; }
+  if (!silent) setState('st-loading');
+  const url = csvUrl + (csvUrl.includes('?') ? '&' : '?') + '_t=' + Date.now();
   Papa.parse(url, {
-    download: true,
-    header: true,
-    skipEmptyLines: true,
-    complete(results) {
-      allData = results.data;
-      document.getElementById('total-count').textContent = allData.length;
-      document.getElementById('last-update').textContent =
-        'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
-      buildSegmentPills();
-      applyFilters();
-      showToast('✓ ' + allData.length + ' peças carregadas');
+    download: true, header: true, skipEmptyLines: true,
+    complete(r) {
+      all = r.data;
+      updateStats(); buildPills(); applyFilters();
+      if (silent) toast('✓ Dados atualizados');
     },
-    error(err) {
-      setState('error');
-      document.getElementById('error-msg').textContent =
-        'Erro ao carregar CSV: ' + err.message;
-      console.error(err);
+    error(e) {
+      setState('st-error');
+      $('err-msg').textContent = e.message || 'Erro desconhecido.';
     }
   });
 }
 
-/* ─── SEGMENT PILLS ──────────────────────────────────────────── */
-function buildSegmentPills() {
-  const segs = ['todos', ...new Set(allData.map(r => r['Segmento'] || '').filter(Boolean).sort())];
-  const container = document.getElementById('seg-pills');
-  container.innerHTML = '';
-  segs.forEach(seg => {
-    const btn = document.createElement('button');
-    btn.className = 'seg-pill' + (seg === currentSeg ? ' active' : '');
-    btn.dataset.seg = seg;
-    btn.textContent = seg === 'todos' ? '🔩 Todos' : seg;
-    btn.addEventListener('click', () => {
-      currentSeg = seg;
-      currentPage = 1;
-      document.querySelectorAll('.seg-pill').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      applyFilters();
-    });
-    container.appendChild(btn);
+/* ── STATS ───────────────────────────────────── */
+function updateStats() {
+  $('s-total').textContent = all.length;
+  $('s-motos').textContent = new Set(all.map(r=>r['Moto Compatível']||'').filter(Boolean)).size;
+  $('s-segs').textContent  = new Set(all.map(r=>r['Segmento']||'').filter(Boolean)).size;
+}
+
+/* ── PILLS ───────────────────────────────────── */
+function buildPills() {
+  const cnt = {};
+  all.forEach(r => { const s = r['Segmento']||''; if(s) cnt[s]=(cnt[s]||0)+1; });
+  const segs = Object.keys(cnt).sort();
+  const wrap = $('pills');
+  wrap.innerHTML = '';
+  wrap.appendChild(mkPill('todos','🔩 Todos', all.length));
+  segs.forEach(s => {
+    const {ico} = si(s);
+    wrap.appendChild(mkPill(s, ico+' '+s, cnt[s]));
   });
 }
 
-/* ─── FILTER + RENDER ────────────────────────────────────────── */
+function mkPill(s, lbl, n) {
+  const b = document.createElement('button');
+  b.className = 'pill' + (s===seg?' on':'');
+  b.innerHTML = `${lbl} <span class="pill-n">${n}</span>`;
+  b.onclick = () => {
+    seg = s; pg = 1;
+    document.querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));
+    b.classList.add('on');
+    applyFilters();
+  };
+  return b;
+}
+
+/* ── FILTER ──────────────────────────────────── */
 function applyFilters() {
-  const q = currentQ.toLowerCase().trim();
-  filtered = allData.filter(row => {
-    const segOk = currentSeg === 'todos' || (row['Segmento'] || '') === currentSeg;
-    if (!segOk) return false;
-    if (!q) return true;
-    return Object.values(row).some(v => (v || '').toLowerCase().includes(q));
+  const qlo = q.toLowerCase().trim();
+  filt = all.filter(r => {
+    if (seg !== 'todos' && (r['Segmento']||'') !== seg) return false;
+    if (!qlo) return true;
+    return Object.values(r).some(v=>(v||'').toLowerCase().includes(qlo));
   });
-
-  if (filtered.length === 0) {
-    setState('empty');
-    return;
-  }
-  setState('data');
-  renderTable();
-  renderCards();
-  renderPagination();
+  if (!all.length) return;
+  if (!filt.length) { setState('st-empty'); return; }
+  setState(null);
+  render(); renderPag(); renderLabel();
 }
 
-/* ─── TABLE (desktop) ────────────────────────────────────────── */
-function renderTable() {
-  const start = (currentPage - 1) * ROWS_PER_PAGE;
-  const slice = filtered.slice(start, start + ROWS_PER_PAGE);
-
-  const tbody = document.getElementById('table-body');
-  tbody.innerHTML = '';
-
-  slice.forEach(row => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><span class="badge-seg ${segClass(row['Segmento'])}">${row['Segmento'] || '—'}</span></td>
-      <td><strong>${row['Nome da Peça na KR250'] || '—'}</strong></td>
-      <td><span style="font-family:var(--font-mono);font-size:0.8rem;">${row['Ano da Kingger'] || '—'}</span></td>
-      <td>${row['Código Original'] ? `<span class="code-chip">${row['Código Original']}</span>` : '<span style="color:var(--text-lo)">—</span>'}</td>
-      <td><span class="moto-compat">${row['Moto Compatível'] || '—'}</span></td>
-      <td>${row['Peça/Código Compatível'] ? `<span class="code-chip" style="color:var(--text-hi);">${row['Peça/Código Compatível']}</span>` : '<span style="color:var(--text-lo)">—</span>'}</td>
-      <td><span class="nota-text">${row['Notas de Instalação'] || '—'}</span></td>
-      <td><span class="indicado-tag">👤 ${row['Quem Indicou'] || 'anon'}</span></td>
-    `;
-    tbody.appendChild(tr);
-  });
+function renderLabel() {
+  const s = (pg-1)*PER_PAGE+1, e = Math.min(pg*PER_PAGE,filt.length);
+  $('bar-label').innerHTML = `Exibindo <b>${s}–${e}</b> de <b>${filt.length}</b> peças`;
 }
 
-/* ─── CARDS (mobile) ─────────────────────────────────────────── */
-function renderCards() {
-  const start = (currentPage - 1) * ROWS_PER_PAGE;
-  const slice = filtered.slice(start, start + ROWS_PER_PAGE);
-  const container = document.getElementById('cards-container');
-  container.innerHTML = '';
+/* ── RENDER CARDS ────────────────────────────── */
+function render() {
+  const grid = $('grid');
+  grid.innerHTML = '';
+  const slice = filt.slice((pg-1)*PER_PAGE, pg*PER_PAGE);
 
   slice.forEach((row, i) => {
+    const info      = si(row['Segmento']||'');
+    const segLabel  = (row['Segmento']||'').replace(/^[\p{Emoji}\s]+/u,'').trim() || (row['Segmento']||'—');
+    const nome      = row['Nome da Peça na KR250']   || '—';
+    const ano       = row['Ano da Kingger']           || '';
+    const codO      = row['Código Original']          || '';
+    const codC      = row['Peça/Código Compatível']   || '';
+    const moto      = row['Moto Compatível']          || '—';
+    const nota      = row['Notas de Instalação']      || '';
+    const autor     = row['Quem Indicou']             || 'anon';
+    const init      = autor.replace(/^[@#]/,'').slice(0,2).toUpperCase();
+
     const card = document.createElement('div');
-    card.className = 'part-card';
-    card.style.animationDelay = (i * 0.03) + 's';
+    card.className = 'card';
+    card.style.cssText = `animation-delay:${Math.min(i*.03,.5)}s; --c:var(--${info.cls.replace('s-','c-')},var(--accent))`;
+
     card.innerHTML = `
-      <div class="part-card-header">
-        <div class="part-name">${row['Nome da Peça na KR250'] || '—'}</div>
-        <span class="badge-seg ${segClass(row['Segmento'])}" style="margin-left:0.5rem;flex-shrink:0;">${row['Segmento'] || '—'}</span>
-      </div>
-      <div class="part-card-grid">
-        <div class="card-field">
-          <label>Ano KR</label>
-          <div class="val" style="font-family:var(--font-mono)">${row['Ano da Kingger'] || '—'}</div>
-        </div>
-        <div class="card-field">
-          <label>Cód. Original</label>
-          <div class="val">${row['Código Original'] ? `<span class="code-chip">${row['Código Original']}</span>` : '—'}</div>
-        </div>
-        <div class="card-field">
-          <label>Moto Compatível</label>
-          <div class="val"><strong>${row['Moto Compatível'] || '—'}</strong></div>
-        </div>
-        <div class="card-field">
-          <label>Peça / Cód. Compat.</label>
-          <div class="val">${row['Peça/Código Compatível'] ? `<span class="code-chip" style="color:var(--text-hi)">${row['Peça/Código Compatível']}</span>` : '—'}</div>
-        </div>
-        ${row['Notas de Instalação'] ? `
-        <div class="card-field full">
-          <label>Notas de Instalação</label>
-          <div class="val nota-text">${row['Notas de Instalação']}</div>
-        </div>` : ''}
-      </div>
-      <div class="part-card-footer">
-        <span class="indicado-tag">👤 ${row['Quem Indicou'] || 'anon'}</span>
-      </div>
-    `;
-    container.appendChild(card);
+      <span class="c-seg ${info.cls}">${info.ico} ${esc(segLabel)}</span>
+      <div class="c-name">${esc(nome)}</div>
+      ${ano ? `<div class="c-year">Ano ${esc(ano)}</div>` : ''}
+      ${codO ? `<div class="c-codes"><span class="chip chip-o">${esc(codO)}</span></div>` : '<div class="c-codes"></div>'}
+      <hr class="c-hr"/>
+      <div class="c-moto">${esc(moto)}</div>
+      ${codC ? `<div class="c-codes"><span class="chip chip-c">${esc(codC)}</span></div>` : ''}
+      ${nota ? `<div class="c-note">${esc(nota)}</div>` : '<div style="flex:1"></div>'}
+      <div class="c-foot">
+        <span class="c-avatar">${esc(init)}</span>
+        <span class="c-author">${esc(autor)}</span>
+      </div>`;
+    grid.appendChild(card);
   });
 }
 
-/* ─── PAGINATION ─────────────────────────────────────────────── */
-function renderPagination() {
-  const totalPages = Math.ceil(filtered.length / ROWS_PER_PAGE);
-  const start = (currentPage - 1) * ROWS_PER_PAGE + 1;
-  const end   = Math.min(currentPage * ROWS_PER_PAGE, filtered.length);
+/* ── PAGINATION ──────────────────────────────── */
+function renderPag() {
+  const tot = Math.ceil(filt.length/PER_PAGE);
+  const pag = $('pag');
+  pag.innerHTML = '';
+  if (tot<=1) return;
 
-  document.getElementById('page-info').textContent =
-    `${start}–${end} de ${filtered.length} peças`;
+  const btn = (lbl, p, active=false, dis=false) => {
+    const b = document.createElement('button');
+    b.className = 'pb'+(active?' on':'');
+    b.textContent = lbl; b.disabled = dis;
+    if (!dis && !active) b.onclick = () => {
+      pg=p; render(); renderPag(); renderLabel();
+      window.scrollTo({top:0,behavior:'smooth'});
+    };
+    return b;
+  };
 
-  const btns = document.getElementById('page-btns');
-  btns.innerHTML = '';
-
-  // Prev
-  const prev = document.createElement('button');
-  prev.className = 'page-btn';
-  prev.textContent = '← Ant';
-  if (currentPage === 1) prev.disabled = true;
-  prev.addEventListener('click', () => { currentPage--; renderTable(); renderCards(); renderPagination(); });
-  btns.appendChild(prev);
-
-  // Page numbers
-  const range = pageRange(currentPage, totalPages);
-  range.forEach(p => {
-    if (p === '…') {
-      const el = document.createElement('span');
-      el.className = 'page-btn';
-      el.style.pointerEvents = 'none';
-      el.textContent = '…';
-      btns.appendChild(el);
-    } else {
-      const btn = document.createElement('button');
-      btn.className = 'page-btn' + (p === currentPage ? ' active' : '');
-      btn.textContent = p;
-      btn.addEventListener('click', () => { currentPage = p; renderTable(); renderCards(); renderPagination(); });
-      btns.appendChild(btn);
-    }
+  pag.appendChild(btn('←', pg-1, false, pg===1));
+  buildRange(pg,tot).forEach(p => {
+    if (p==='…') { const d=document.createElement('span'); d.className='pd'; d.textContent='…'; pag.appendChild(d); }
+    else pag.appendChild(btn(p,p,p===pg));
   });
-
-  // Next
-  const next = document.createElement('button');
-  next.className = 'page-btn';
-  next.textContent = 'Próx →';
-  if (currentPage === totalPages) next.disabled = true;
-  next.addEventListener('click', () => { currentPage++; renderTable(); renderCards(); renderPagination(); });
-  btns.appendChild(next);
+  pag.appendChild(btn('→', pg+1, false, pg===tot));
 }
 
-function pageRange(current, total) {
-  if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
-  const pages = [1];
-  if (current > 3) pages.push('…');
-  for (let p = Math.max(2, current - 1); p <= Math.min(total - 1, current + 1); p++) pages.push(p);
-  if (current < total - 2) pages.push('…');
-  pages.push(total);
-  return pages;
+function buildRange(cur,tot) {
+  if (tot<=7) return Array.from({length:tot},(_,i)=>i+1);
+  const r=[1];
+  if (cur>3) r.push('…');
+  for (let p=Math.max(2,cur-1);p<=Math.min(tot-1,cur+1);p++) r.push(p);
+  if (cur<tot-2) r.push('…');
+  r.push(tot);
+  return r;
 }
 
-/* ─── EVENTS ─────────────────────────────────────────────────── */
-document.getElementById('search-input').addEventListener('input', function() {
-  currentQ = this.value;
-  currentPage = 1;
+/* ── EVENTS ──────────────────────────────────── */
+$('search-input').addEventListener('input', function() {
+  q = this.value; pg = 1;
+  $('clear-btn').classList.toggle('on', q.length>0);
   applyFilters();
 });
-
-document.getElementById('btn-refresh').addEventListener('click', function() {
-  this.classList.add('spinning');
-  setTimeout(() => this.classList.remove('spinning'), 800);
-  loadData(false);
+$('clear-btn').addEventListener('click', () => {
+  $('search-input').value=''; q=''; pg=1;
+  $('clear-btn').classList.remove('on');
+  applyFilters();
+  $('search-input').focus();
+});
+$('refresh-btn').addEventListener('click', function() {
+  this.classList.add('spin');
+  setTimeout(()=>this.classList.remove('spin'),800);
+  load(true);
 });
 
-/* ─── BOOT ───────────────────────────────────────────────────── */
-loadData();
+/* ── BOOT ────────────────────────────────────── */
+load();
 </script>
 </body>
 </html>
