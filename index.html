@@ -486,6 +486,7 @@
     .s-suspensao  { --c:#a78bfa; color:#a78bfa; border-color:rgba(167,139,250,.22); background:rgba(167,139,250,.07); }
     .s-transmissao{ --c:#34d399; color:#34d399; border-color:rgba(52,211,153,.22); background:rgba(52,211,153,.07); }
     .s-carroceria { --c:#f472b6; color:#f472b6; border-color:rgba(244,114,182,.22); background:rgba(244,114,182,.07); }
+    .s-ciclistica { --c:#22d3ee; color:#22d3ee; border-color:rgba(34,211,238,.22);  background:rgba(34,211,238,.07); }
     .s-outros     { --c:#94a3b8; color:#94a3b8; border-color:rgba(148,163,184,.22); background:rgba(148,163,184,.07); }
 
     /* ══════════════════════════════════════════
@@ -698,26 +699,65 @@
 const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQW4AYA3C2_EER5IH4soEY39GFZRA9UNYJ2MygvZCh0rM3fsGgxeBAIwpFCpqr6gFZWkYMozo1qi51A/pub?output=csv';
 const PER_PAGE = 24;
 
-/* ── SEGMENT MAP ─────────────────────────────── */
-const SMAP = {
-  'motor':         { cls:'s-motor',       ico:'⚙️' },
-  'elétrica':      { cls:'s-eletrica',    ico:'⚡' },
-  'eletrica':      { cls:'s-eletrica',    ico:'⚡' },
-  'freios':        { cls:'s-freios',      ico:'🛑' },
-  'suspensão':     { cls:'s-suspensao',   ico:'🔧' },
-  'suspensao':     { cls:'s-suspensao',   ico:'🔧' },
-  'transmissão':   { cls:'s-transmissao', ico:'⛓️' },
-  'transmissao':   { cls:'s-transmissao', ico:'⛓️' },
-  'carroceria':    { cls:'s-carroceria',  ico:'🏍️' },
+/* ── COLUMN FINDER ───────────────────────────────
+   Encontra o cabeçalho real da planilha por palavras-chave,
+   ignorando emojis, maiúsculas e espaços extras.
+   Isso resolve colunas como "🏍️ PEÇA KINGGER KR250" ou "SEGMENTO"
+──────────────────────────────────────────────── */
+let COL = {}; // mapeamento resolvido após primeiro load
+
+const COL_KEYS = {
+  seg:   ['segmento'],
+  nome:  ['peça kingger','peca kingger','nome da peça','nome da peca','peça na kr','peca na kr'],
+  ano:   ['ano'],
+  codO:  ['código of','codigo of','cód. or','cod. or','código orig','codigo orig'],
+  moto:  ['moto compat','moto comp'],
+  codC:  ['peça/código','peca/codigo','peça/cod','peca/cod','código compat','codigo compat'],
+  nota:  ['notas','nota'],
+  autor: ['quem ind','indicou'],
 };
-const si = v => SMAP[(v||'').toLowerCase().trim()] || { cls:'s-outros', ico:'📦' };
+
+// Normaliza string: minúsculo, sem emoji, sem acento, sem espaço duplo
+const norm = s => (s||'')
+  .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d\uFE0F\uFE0E]/gu, '')
+  .toLowerCase()
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .replace(/\s+/g,' ').trim();
+
+function resolveColumns(headers) {
+  COL = {};
+  for (const [field, keywords] of Object.entries(COL_KEYS)) {
+    for (const h of headers) {
+      const hn = norm(h);
+      if (keywords.some(k => hn.includes(k))) { COL[field] = h; break; }
+    }
+  }
+  console.log('Colunas resolvidas:', COL);
+}
+
+function col(row, field) { return (COL[field] ? row[COL[field]] : '') || ''; }
+
+/* ── SEGMENT MAP ─────────────────────────────── */
+const SMAP = [
+  { keys:['motor'],                          cls:'s-motor',        ico:'⚙️'  },
+  { keys:['eletrica','eletric','elétric'],   cls:'s-eletrica',     ico:'⚡'  },
+  { keys:['freio'],                           cls:'s-freios',       ico:'🛑'  },
+  { keys:['suspens'],                         cls:'s-suspensao',    ico:'🔧'  },
+  { keys:['transmiss'],                       cls:'s-transmissao',  ico:'⛓️' },
+  { keys:['carroceria'],                      cls:'s-carroceria',   ico:'🏍️' },
+  { keys:['ciclist','cicl'],                  cls:'s-ciclistica',   ico:'🚲'  },
+];
+const si = v => {
+  const n = norm(v);
+  return SMAP.find(m => m.keys.some(k => n.includes(k))) || { cls:'s-outros', ico:'📦' };
+};
 
 /* ── STATE ───────────────────────────────────── */
 let all = [], filt = [], seg = 'todos', q = '', pg = 1;
 
 /* ── UTILS ───────────────────────────────────── */
-const $  = id => document.getElementById(id);
-const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const $   = id => document.getElementById(id);
+const esc = s  => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
 function toast(msg, ms=2400) {
   const el = $('toast');
@@ -728,10 +768,10 @@ function toast(msg, ms=2400) {
 }
 
 function setState(v) {
-  ['st-loading','st-config','st-error','st-empty'].forEach(id => $( id).classList.remove('on'));
+  ['st-loading','st-config','st-error','st-empty'].forEach(id => $(id).classList.remove('on'));
   $('bar').style.display = 'none';
-  $('grid').innerHTML   = '';
-  $('pag').innerHTML    = '';
+  $('grid').innerHTML    = '';
+  $('pag').innerHTML     = '';
   if (v) $(v).classList.add('on');
   if (v === null) $('bar').style.display = 'flex';
 }
@@ -745,6 +785,7 @@ function load(silent=false) {
     download: true, header: true, skipEmptyLines: true,
     complete(r) {
       all = r.data;
+      if (all.length) resolveColumns(Object.keys(all[0]));
       updateStats(); buildPills(); applyFilters();
       if (silent) toast('✓ Dados atualizados');
     },
@@ -758,21 +799,23 @@ function load(silent=false) {
 /* ── STATS ───────────────────────────────────── */
 function updateStats() {
   $('s-total').textContent = all.length;
-  $('s-motos').textContent = new Set(all.map(r=>r['Moto Compatível']||'').filter(Boolean)).size;
-  $('s-segs').textContent  = new Set(all.map(r=>r['Segmento']||'').filter(Boolean)).size;
+  $('s-motos').textContent = new Set(all.map(r=>col(r,'moto')).filter(Boolean)).size;
+  $('s-segs').textContent  = new Set(all.map(r=>col(r,'seg')).filter(Boolean)).size;
 }
 
 /* ── PILLS ───────────────────────────────────── */
 function buildPills() {
   const cnt = {};
-  all.forEach(r => { const s = r['Segmento']||''; if(s) cnt[s]=(cnt[s]||0)+1; });
-  const segs = Object.keys(cnt).sort();
+  all.forEach(r => { const s = col(r,'seg'); if(s) cnt[s]=(cnt[s]||0)+1; });
+  const segs = Object.keys(cnt).sort((a,b)=>a.localeCompare(b,'pt'));
   const wrap = $('pills');
   wrap.innerHTML = '';
   wrap.appendChild(mkPill('todos','🔩 Todos', all.length));
   segs.forEach(s => {
     const {ico} = si(s);
-    wrap.appendChild(mkPill(s, ico+' '+s, cnt[s]));
+    // Exibe o label sem emoji duplicado (o valor já pode ter emoji)
+    const lbl = norm(s).replace(/\b\w/g, c=>c.toUpperCase());
+    wrap.appendChild(mkPill(s, ico+' '+lbl, cnt[s]));
   });
 }
 
@@ -793,7 +836,7 @@ function mkPill(s, lbl, n) {
 function applyFilters() {
   const qlo = q.toLowerCase().trim();
   filt = all.filter(r => {
-    if (seg !== 'todos' && (r['Segmento']||'') !== seg) return false;
+    if (seg !== 'todos' && col(r,'seg') !== seg) return false;
     if (!qlo) return true;
     return Object.values(r).some(v=>(v||'').toLowerCase().includes(qlo));
   });
@@ -815,20 +858,22 @@ function render() {
   const slice = filt.slice((pg-1)*PER_PAGE, pg*PER_PAGE);
 
   slice.forEach((row, i) => {
-    const info      = si(row['Segmento']||'');
-    const segLabel  = (row['Segmento']||'').replace(/^[\p{Emoji}\s]+/u,'').trim() || (row['Segmento']||'—');
-    const nome      = row['Nome da Peça na KR250']   || '—';
-    const ano       = row['Ano da Kingger']           || '';
-    const codO      = row['Código Original']          || '';
-    const codC      = row['Peça/Código Compatível']   || '';
-    const moto      = row['Moto Compatível']          || '—';
-    const nota      = row['Notas de Instalação']      || '';
-    const autor     = row['Quem Indicou']             || 'anon';
-    const init      = autor.replace(/^[@#]/,'').slice(0,2).toUpperCase();
+    const segVal   = col(row,'seg');
+    const info     = si(segVal);
+    // Label limpo: remove emojis do início, capitaliza
+    const segLabel = norm(segVal).replace(/\b\w/g, c=>c.toUpperCase()) || '—';
+    const nome     = col(row,'nome')  || '—';
+    const ano      = col(row,'ano')   || '';
+    const codO     = col(row,'codO')  || '';
+    const codC     = col(row,'codC')  || '';
+    const moto     = col(row,'moto')  || '—';
+    const nota     = col(row,'nota')  || '';
+    const autor    = col(row,'autor') || 'anon';
+    const init     = autor.replace(/^[@#]/,'').slice(0,2).toUpperCase();
 
     const card = document.createElement('div');
     card.className = 'card';
-    card.style.cssText = `animation-delay:${Math.min(i*.03,.5)}s; --c:var(--${info.cls.replace('s-','c-')},var(--accent))`;
+    card.style.animationDelay = Math.min(i*.03,.5)+'s';
 
     card.innerHTML = `
       <span class="c-seg ${info.cls}">${info.ico} ${esc(segLabel)}</span>
