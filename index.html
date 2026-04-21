@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KR250 | Catálogo de Peças Intercambiáveis</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" />
+
+  <!-- DataTables + Bootstrap 5 skin -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+  <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+
+  <style>
+    /* ─── TOKENS ────────────────────────────────────────────── */
+    :root {
+      --bg-base:    #0d0e0f;
+      --bg-card:    #141618;
+      --bg-surface: #1b1d20;
+      --bg-hover:   #222529;
+      --border:     #2a2d32;
+      --accent:     #e8620a;
+      --accent-dim: #a04207;
+      --accent-glow:#e8620a44;
+      --text-hi:    #f0ece6;
+      --text-mid:   #9a9590;
+      --text-lo:    #55524e;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-mono:    'IBM Plex Mono', monospace;
+      --font-body:    'Barlow', sans-serif;
+    }
+
+    /* ─── BASE ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-hi);
+      font-family: var(--font-body);
+      font-size: 0.92rem;
+      min-height: 100dvh;
+    }
+
+    /* Subtle noise overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.5;
+    }
+
+    /* ─── HEADER ─────────────────────────────────────────────── */
+    header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.25rem 0.85rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .logo-block { display: flex; align-items: center; gap: 0.6rem; }
+
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: grid; place-items: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+      box-shadow: 0 0 18px var(--accent-glow);
+    }
+
+    .logo-text {
+      font-family: var(--font-display);
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+    .logo-text .model {
+      font-size: 1.8rem;
+      color: var(--text-hi);
+    }
+    .logo-text .sub {
+      font-size: 0.65rem;
+      color: var(--text-mid);
+      font-family: var(--font-mono);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .header-meta {
+      margin-left: auto;
+      text-align: right;
+    }
+    .header-meta .badge-update {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--text-lo);
+      letter-spacing: 0.08em;
+    }
+    #total-count {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .count-label {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      color: var(--text-mid);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* ─── SEGMENT FILTER PILLS ──────────────────────────────── */
+    .filter-bar {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 0.6rem 1.25rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .filter-bar::-webkit-scrollbar { display: none; }
+
+    .filter-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0.5rem;
+      white-space: nowrap;
+    }
+
+    .seg-pill {
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-mid);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+      padding: 0.32rem 0.75rem;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      white-space: nowrap;
+      user-select: none;
+    }
+    .seg-pill:hover { border-color: var(--accent-dim); color: var(--text-hi); }
+    .seg-pill.active {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+      color: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    /* ─── MAIN ──────────────────────────────────────────────── */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem 1rem 4rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ─── SEARCH ROW ─────────────────────────────────────────── */
+    .search-row {
+      display: flex;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    #search-input {
+      flex: 1 1 200px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-hi);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      padding: 0.5rem 0.85rem;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.18s;
+      min-width: 0;
+    }
+    #search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    #search-input::placeholder { color: var(--text-lo); }
+
+    #btn-refresh {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-mid);
+      font-size: 1rem;
+      width: 38px; height: 38px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: grid; place-items: center;
+      transition: all 0.18s;
+      flex-shrink: 0;
+    }
+    #btn-refresh:hover { border-color: var(--accent); color: var(--accent); }
+    #btn-refresh.spinning { animation: spin 0.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── TABLE WRAPPER ──────────────────────────────────────── */
+    .table-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    /* DataTables overrides */
+    table.dataTable thead th {
+      background: var(--bg-surface) !important;
+      color: var(--text-mid) !important;
+      font-family: var(--font-mono) !important;
+      font-size: 0.65rem !important;
+      letter-spacing: 0.1em !important;
+      text-transform: uppercase !important;
+      border-bottom: 1px solid var(--border) !important;
+      border-top: none !important;
+      padding: 0.8rem 0.75rem !important;
+      white-space: nowrap;
+    }
+    table.dataTable thead th:hover { color: var(--text-hi) !important; }
+    table.dataTable thead .sorting::after,
+    table.dataTable thead .sorting_asc::after,
+    table.dataTable thead .sorting_desc::after { color: var(--accent) !important; }
+
+    table.dataTable tbody tr {
+      border-bottom: 1px solid var(--border) !important;
+      background: var(--bg-card) !important;
+      transition: background 0.12s;
+    }
+    table.dataTable tbody tr:last-child { border-bottom: none !important; }
+    table.dataTable tbody tr:hover { background: var(--bg-hover) !important; }
+
+    table.dataTable tbody td {
+      color: var(--text-hi) !important;
+      border: none !important;
+      padding: 0.7rem 0.75rem !important;
+      vertical-align: middle;
+      font-size: 0.85rem;
+    }
+
+    /* DataTables controls */
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate { display: none !important; }
+
+    /* ─── CELL COMPONENTS ────────────────────────────────────── */
+    .badge-seg {
+      display: inline-block;
+      padding: 0.18rem 0.55rem;
+      border-radius: 100px;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.06em;
+      border: 1px solid;
+      white-space: nowrap;
+    }
+
+    .code-chip {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      background: var(--bg-surface);
+      padding: 0.18rem 0.5rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      white-space: nowrap;
+      display: inline-block;
+    }
+
+    .moto-compat {
+      font-weight: 600;
+      color: var(--text-hi);
+    }
+
+    .nota-text {
+      color: var(--text-mid);
+      font-size: 0.78rem;
+      line-height: 1.4;
+    }
+
+    .indicado-tag {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-lo);
+    }
+
+    /* Segment color map */
+    .seg-motor    { color: #f87c52; border-color: #f87c5244; background: #f87c5214; }
+    .seg-eletrica { color: #fbbf24; border-color: #fbbf2444; background: #fbbf2414; }
+    .seg-freios   { color: #60a5fa; border-color: #60a5fa44; background: #60a5fa14; }
+    .seg-suspensao{ color: #a78bfa; border-color: #a78bfa44; background: #a78bfa14; }
+    .seg-transmissao{ color: #34d399; border-color: #34d39944; background: #34d39914; }
+    .seg-carroceria { color: #f472b6; border-color: #f472b644; background: #f472b614; }
+    .seg-outros   { color: #94a3b8; border-color: #94a3b844; background: #94a3b814; }
+
+    /* ─── STATES ─────────────────────────────────────────────── */
+    #state-loading, #state-error, #state-empty {
+      display: none;
+      text-align: center;
+      padding: 3rem 1rem;
+    }
+    .spinner-ring {
+      width: 48px; height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    .state-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .state-msg { color: var(--text-mid); font-family: var(--font-mono); font-size: 0.78rem; }
+
+    /* ─── PAGINATION ─────────────────────────────────────────── */
+    #pagination-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    #page-info {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-lo);
+    }
+    .page-btns { display: flex; gap: 0.3rem; }
+    .page-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-mid);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 0.28rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .page-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .page-btn.active { border-color: var(--accent); background: var(--accent-glow); color: var(--accent); }
+    .page-btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+
+    /* ─── MOBILE CARD VIEW ───────────────────────────────────── */
+    @media (max-width: 767px) {
+      header { padding: 0.75rem 1rem 0.65rem; }
+      .logo-text .model { font-size: 1.5rem; }
+      #total-count { font-size: 1.6rem; }
+
+      /* Hide table, show cards */
+      .table-card { display: none; }
+      #cards-container { display: block; }
+    }
+
+    @media (min-width: 768px) {
+      #cards-container { display: none; }
+    }
+
+    /* Mobile cards */
+    #cards-container { }
+    .part-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      animation: fadeUp 0.25s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .part-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 0.6rem;
+    }
+    .part-name { font-weight: 600; font-size: 0.95rem; line-height: 1.3; }
+    .part-card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem 0.75rem;
+    }
+    .card-field label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      color: var(--text-lo);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.15rem;
+    }
+    .card-field .val {
+      font-size: 0.82rem;
+      color: var(--text-hi);
+      word-break: break-word;
+    }
+    .card-field.full { grid-column: 1 / -1; }
+    .part-card-footer {
+      margin-top: 0.65rem;
+      padding-top: 0.55rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* ─── FOOTER ──────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--text-lo);
+      letter-spacing: 0.06em;
+      border-top: 1px solid var(--border);
+    }
+    footer span { color: var(--accent); }
+
+    /* ─── TOAST ───────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 1.25rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-mid);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 0.5rem 1.1rem;
+      border-radius: 100px;
+      z-index: 999;
+      transition: transform 0.25s ease;
+      white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  HEADER                                                    -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<header>
+  <div class="header-inner">
+    <div class="logo-block">
+      <div class="logo-icon">🏍️</div>
+      <div class="logo-text">
+        <div class="model">KINGGER KR250</div>
+        <div class="sub">Catálogo de Peças Intercambiáveis</div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <div id="total-count">—</div>
+      <div class="count-label">peças mapeadas</div>
+      <div class="badge-update" id="last-update">Carregando…</div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  SEGMENT FILTER BAR                                        -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="filter-bar">
+  <div class="filter-inner" id="seg-pills">
+    <button class="seg-pill active" data-seg="todos">Todos</button>
+    <!-- pills rendered by JS -->
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  MAIN                                                      -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<main>
+
+  <!-- Search + Refresh -->
+  <div class="search-row">
+    <input id="search-input" type="search" placeholder="🔍  Buscar peça, moto, código…" autocomplete="off" />
+    <button id="btn-refresh" title="Atualizar dados">↻</button>
+  </div>
+
+  <!-- Loading -->
+  <div id="state-loading">
+    <div class="spinner-ring"></div>
+    <div class="state-msg">Carregando planilha…</div>
+  </div>
+
+  <!-- Error -->
+  <div id="state-error">
+    <div class="state-icon">⚠️</div>
+    <div class="state-msg" id="error-msg">Não foi possível carregar os dados.</div>
+  </div>
+
+  <!-- Empty result -->
+  <div id="state-empty">
+    <div class="state-icon">🔩</div>
+    <div class="state-msg">Nenhuma peça encontrada para este filtro.</div>
+  </div>
+
+  <!-- Desktop: DataTable -->
+  <div class="table-card" id="table-wrapper">
+    <div style="overflow-x:auto;">
+      <table id="parts-table" class="table table-borderless dataTable w-100" style="min-width:900px;">
+        <thead>
+          <tr>
+            <th>Segmento</th>
+            <th>Peça (KR250)</th>
+            <th>Ano KR</th>
+            <th>Cód. Original</th>
+            <th>Moto Compatível</th>
+            <th>Peça / Código Compat.</th>
+            <th>Notas de Instalação</th>
+            <th>Indicado por</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+    <div id="pagination-row">
+      <div id="page-info">—</div>
+      <div class="page-btns" id="page-btns"></div>
+    </div>
+  </div>
+
+  <!-- Mobile: Card list -->
+  <div id="cards-container"></div>
+
+</main>
+
+<footer>
+  Comunidade <span>KR250 Trilheiros</span> · Dados via Google Sheets · Open Source
+</footer>
+
+<div id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  SCRIPTS                                                   -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   ⚙️  CONFIGURAÇÃO — substitua a URL abaixo pela sua
+   ═══════════════════════════════════════════════════════════════
+   Como obter o link CSV do Google Sheets:
+   1. Abra a planilha → Arquivo → Publicar na web
+   2. Selecione a aba correta → Formato: CSV → Publicar
+   3. Copie o link gerado e cole em csvUrl abaixo
+   ──────────────────────────────────────────────────────────── */
+const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQW4AYA3C2_EER5IH4soEY39GFZRA9UNYJ2MygvZCh0rM3fsGgxeBAIwpFCpqr6gFZWkYMozo1qi51A/pub?output=csv';
+
+/* ───────────────────────────────────────────────────────────── */
+
+const ROWS_PER_PAGE = 20;
+
+/* Mapeamento de segmento → classe CSS de cor */
+const SEG_CLASS = {
+  'motor':      'seg-motor',
+  'elétrica':   'seg-eletrica',
+  'eletrica':   'seg-eletrica',
+  'freios':     'seg-freios',
+  'suspensão':  'seg-suspensao',
+  'suspensao':  'seg-suspensao',
+  'transmissão':'seg-transmissao',
+  'transmissao':'seg-transmissao',
+  'carroceria': 'seg-carroceria',
+};
+function segClass(val = '') {
+  return SEG_CLASS[val.toLowerCase().trim()] || 'seg-outros';
+}
+
+/* Estado da aplicação */
+let allData    = [];    // todos os registros
+let filtered   = [];    // após filtros
+let currentSeg = 'todos';
+let currentQ   = '';
+let currentPage = 1;
+let dtTable    = null;
+
+/* ─── UTIL ──────────────────────────────────────────────────── */
+function showToast(msg, ms = 2200) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), ms);
+}
+
+function setState(state) {
+  ['loading','error','empty'].forEach(s => {
+    document.getElementById('state-' + s).style.display = 'none';
+  });
+  document.getElementById('table-wrapper').style.display = 'none';
+  document.getElementById('cards-container').style.display = 'none';
+
+  if (state === 'loading') {
+    document.getElementById('state-loading').style.display = 'block';
+  } else if (state === 'error') {
+    document.getElementById('state-error').style.display = 'block';
+  } else if (state === 'empty') {
+    document.getElementById('state-empty').style.display = 'block';
+  } else if (state === 'data') {
+    document.getElementById('table-wrapper').style.display = 'block';
+    document.getElementById('cards-container').style.display = 'block';
+  }
+}
+
+/* ─── CSV LOAD ──────────────────────────────────────────────── */
+function loadData(showSpinner = true) {
+  if (!csvUrl || csvUrl === 'SEU_LINK_CSV_AQUI') {
+    setState('error');
+    document.getElementById('error-msg').innerHTML =
+      '⚙️ Configure a variável <code>csvUrl</code> no código com o link CSV da sua planilha.';
+    document.getElementById('state-error').style.display = 'block';
+    document.getElementById('table-wrapper').style.display = 'none';
+    return;
+  }
+
+  if (showSpinner) setState('loading');
+
+  /* Cache-busting: adiciona timestamp para forçar dados frescos */
+  const url = csvUrl + (csvUrl.includes('?') ? '&' : '?') + '_cb=' + Date.now();
+
+  Papa.parse(url, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete(results) {
+      allData = results.data;
+      document.getElementById('total-count').textContent = allData.length;
+      document.getElementById('last-update').textContent =
+        'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
+      buildSegmentPills();
+      applyFilters();
+      showToast('✓ ' + allData.length + ' peças carregadas');
+    },
+    error(err) {
+      setState('error');
+      document.getElementById('error-msg').textContent =
+        'Erro ao carregar CSV: ' + err.message;
+      console.error(err);
+    }
+  });
+}
+
+/* ─── SEGMENT PILLS ──────────────────────────────────────────── */
+function buildSegmentPills() {
+  const segs = ['todos', ...new Set(allData.map(r => r['Segmento'] || '').filter(Boolean).sort())];
+  const container = document.getElementById('seg-pills');
+  container.innerHTML = '';
+  segs.forEach(seg => {
+    const btn = document.createElement('button');
+    btn.className = 'seg-pill' + (seg === currentSeg ? ' active' : '');
+    btn.dataset.seg = seg;
+    btn.textContent = seg === 'todos' ? '🔩 Todos' : seg;
+    btn.addEventListener('click', () => {
+      currentSeg = seg;
+      currentPage = 1;
+      document.querySelectorAll('.seg-pill').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      applyFilters();
+    });
+    container.appendChild(btn);
+  });
+}
+
+/* ─── FILTER + RENDER ────────────────────────────────────────── */
+function applyFilters() {
+  const q = currentQ.toLowerCase().trim();
+  filtered = allData.filter(row => {
+    const segOk = currentSeg === 'todos' || (row['Segmento'] || '') === currentSeg;
+    if (!segOk) return false;
+    if (!q) return true;
+    return Object.values(row).some(v => (v || '').toLowerCase().includes(q));
+  });
+
+  if (filtered.length === 0) {
+    setState('empty');
+    return;
+  }
+  setState('data');
+  renderTable();
+  renderCards();
+  renderPagination();
+}
+
+/* ─── TABLE (desktop) ────────────────────────────────────────── */
+function renderTable() {
+  const start = (currentPage - 1) * ROWS_PER_PAGE;
+  const slice = filtered.slice(start, start + ROWS_PER_PAGE);
+
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = '';
+
+  slice.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="badge-seg ${segClass(row['Segmento'])}">${row['Segmento'] || '—'}</span></td>
+      <td><strong>${row['Nome da Peça na KR250'] || '—'}</strong></td>
+      <td><span style="font-family:var(--font-mono);font-size:0.8rem;">${row['Ano da Kingger'] || '—'}</span></td>
+      <td>${row['Código Original'] ? `<span class="code-chip">${row['Código Original']}</span>` : '<span style="color:var(--text-lo)">—</span>'}</td>
+      <td><span class="moto-compat">${row['Moto Compatível'] || '—'}</span></td>
+      <td>${row['Peça/Código Compatível'] ? `<span class="code-chip" style="color:var(--text-hi);">${row['Peça/Código Compatível']}</span>` : '<span style="color:var(--text-lo)">—</span>'}</td>
+      <td><span class="nota-text">${row['Notas de Instalação'] || '—'}</span></td>
+      <td><span class="indicado-tag">👤 ${row['Quem Indicou'] || 'anon'}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+/* ─── CARDS (mobile) ─────────────────────────────────────────── */
+function renderCards() {
+  const start = (currentPage - 1) * ROWS_PER_PAGE;
+  const slice = filtered.slice(start, start + ROWS_PER_PAGE);
+  const container = document.getElementById('cards-container');
+  container.innerHTML = '';
+
+  slice.forEach((row, i) => {
+    const card = document.createElement('div');
+    card.className = 'part-card';
+    card.style.animationDelay = (i * 0.03) + 's';
+    card.innerHTML = `
+      <div class="part-card-header">
+        <div class="part-name">${row['Nome da Peça na KR250'] || '—'}</div>
+        <span class="badge-seg ${segClass(row['Segmento'])}" style="margin-left:0.5rem;flex-shrink:0;">${row['Segmento'] || '—'}</span>
+      </div>
+      <div class="part-card-grid">
+        <div class="card-field">
+          <label>Ano KR</label>
+          <div class="val" style="font-family:var(--font-mono)">${row['Ano da Kingger'] || '—'}</div>
+        </div>
+        <div class="card-field">
+          <label>Cód. Original</label>
+          <div class="val">${row['Código Original'] ? `<span class="code-chip">${row['Código Original']}</span>` : '—'}</div>
+        </div>
+        <div class="card-field">
+          <label>Moto Compatível</label>
+          <div class="val"><strong>${row['Moto Compatível'] || '—'}</strong></div>
+        </div>
+        <div class="card-field">
+          <label>Peça / Cód. Compat.</label>
+          <div class="val">${row['Peça/Código Compatível'] ? `<span class="code-chip" style="color:var(--text-hi)">${row['Peça/Código Compatível']}</span>` : '—'}</div>
+        </div>
+        ${row['Notas de Instalação'] ? `
+        <div class="card-field full">
+          <label>Notas de Instalação</label>
+          <div class="val nota-text">${row['Notas de Instalação']}</div>
+        </div>` : ''}
+      </div>
+      <div class="part-card-footer">
+        <span class="indicado-tag">👤 ${row['Quem Indicou'] || 'anon'}</span>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+/* ─── PAGINATION ─────────────────────────────────────────────── */
+function renderPagination() {
+  const totalPages = Math.ceil(filtered.length / ROWS_PER_PAGE);
+  const start = (currentPage - 1) * ROWS_PER_PAGE + 1;
+  const end   = Math.min(currentPage * ROWS_PER_PAGE, filtered.length);
+
+  document.getElementById('page-info').textContent =
+    `${start}–${end} de ${filtered.length} peças`;
+
+  const btns = document.getElementById('page-btns');
+  btns.innerHTML = '';
+
+  // Prev
+  const prev = document.createElement('button');
+  prev.className = 'page-btn';
+  prev.textContent = '← Ant';
+  if (currentPage === 1) prev.disabled = true;
+  prev.addEventListener('click', () => { currentPage--; renderTable(); renderCards(); renderPagination(); });
+  btns.appendChild(prev);
+
+  // Page numbers
+  const range = pageRange(currentPage, totalPages);
+  range.forEach(p => {
+    if (p === '…') {
+      const el = document.createElement('span');
+      el.className = 'page-btn';
+      el.style.pointerEvents = 'none';
+      el.textContent = '…';
+      btns.appendChild(el);
+    } else {
+      const btn = document.createElement('button');
+      btn.className = 'page-btn' + (p === currentPage ? ' active' : '');
+      btn.textContent = p;
+      btn.addEventListener('click', () => { currentPage = p; renderTable(); renderCards(); renderPagination(); });
+      btns.appendChild(btn);
+    }
+  });
+
+  // Next
+  const next = document.createElement('button');
+  next.className = 'page-btn';
+  next.textContent = 'Próx →';
+  if (currentPage === totalPages) next.disabled = true;
+  next.addEventListener('click', () => { currentPage++; renderTable(); renderCards(); renderPagination(); });
+  btns.appendChild(next);
+}
+
+function pageRange(current, total) {
+  if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+  const pages = [1];
+  if (current > 3) pages.push('…');
+  for (let p = Math.max(2, current - 1); p <= Math.min(total - 1, current + 1); p++) pages.push(p);
+  if (current < total - 2) pages.push('…');
+  pages.push(total);
+  return pages;
+}
+
+/* ─── EVENTS ─────────────────────────────────────────────────── */
+document.getElementById('search-input').addEventListener('input', function() {
+  currentQ = this.value;
+  currentPage = 1;
+  applyFilters();
+});
+
+document.getElementById('btn-refresh').addEventListener('click', function() {
+  this.classList.add('spinning');
+  setTimeout(() => this.classList.remove('spinning'), 800);
+  loadData(false);
+});
+
+/* ─── BOOT ───────────────────────────────────────────────────── */
+loadData();
+</script>
+</body>
+</html>
